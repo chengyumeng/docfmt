@@ -13,11 +13,19 @@ const (
 func Loadignore() (lines []string) {
 	if home := os.Getenv("HOME"); home != "" {
 		if data, err := ioutil.ReadFile((home + string(os.PathSeparator) + IGNOREFILE)); err == nil {
-			lines = append(lines, strings.Split(string(data), "\n")...)
+			for _,l := range strings.Split(string(data), "\n") {
+				if len(l) > 0 && !strings.HasPrefix(l,"#") {
+					lines = append(lines, l)
+				}
+			}
 		}
 	}
 	if data, err := ioutil.ReadFile(IGNOREFILE); err == nil {
-		lines = append(lines, strings.Split(string(data), "\n")...)
+		for _,l := range strings.Split(string(data), "\n") {
+			if len(l) > 0 && !strings.HasPrefix(l,"#") {
+				lines = append(lines, l)
+			}
+		}
 	}
 	return
 }
