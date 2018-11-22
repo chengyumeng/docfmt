@@ -172,9 +172,9 @@ func (b *BasicDoc) isAvaliable(file os.FileInfo) bool {
 			if err != nil {
 				return false
 			}
-
+			right = !i && right
 		}
-		right = !i && right
+
 	}
 	return right
 }

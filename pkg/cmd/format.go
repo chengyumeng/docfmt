@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"github.com/chengyumeng/docfmt/pkg/format"
+	"github.com/chengyumeng/docfmt/pkg/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -14,6 +15,7 @@ Wechat Public Accounta: 程天写代码
 `,
 	Example: `docfmt $(pwd) --debug`,
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		option.Ignore = append(option.Ignore, utils.Loadignore()...)
 		return nil
 	},
 	RunE: doFormate,
