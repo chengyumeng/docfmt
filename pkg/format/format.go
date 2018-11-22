@@ -137,12 +137,12 @@ func (b *BasicDoc) preFormat(path string) error {
 		reg1 := regexp.MustCompile(AsiaLatin)
 		arr := reg1.FindAllString(txt, -1)
 		for _, a := range arr {
-			updateTxt = strings.Replace(txt, a, color.RedString(a), -1)
+			updateTxt = strings.Replace(updateTxt, a, color.RedString(a), -1)
 		}
 		reg2 := regexp.MustCompile(LatingAsia)
 		arr = reg2.FindAllString(txt, -1)
 		for _, a := range arr {
-			updateTxt = strings.Replace(txt, a, color.RedString(a), -1)
+			updateTxt = strings.Replace(updateTxt, a, color.RedString(a), -1)
 		}
 		if updateTxt != txt {
 			fmt.Printf("%s %d %s\n", path, line, updateTxt)
