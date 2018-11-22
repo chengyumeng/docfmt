@@ -2,59 +2,75 @@ package format
 
 import (
 	"fmt"
-	"os"
 	"io/ioutil"
+	"os"
 	"regexp"
+	"strings"
+
+	"github.com/fatih/color"
 )
 
 const (
-	Latin string = "[A-Za-z0-9\u00C0-\u00FF\u0100-\u017F\u0180-\u024F\u1E00-\u1EFF]"
-	//Asia string = "'[\u4E00-\u9FFF]', '[\u3400-\u4DB5\u9FA6-\u9FBB\uFA70-\uFAD9\u9FBC-\u9FC3\u3007\u3040-\u309E\u30A1-\u30FA\u30FD\u30FE\uFA0E-\uFA0F\uFA11\uFA13-\uFA14\uFA1F\uFA21\uFA23-\uFA24\uFA27-\uFA29]', '[\uD840-\uD868][\uDC00-\uDFFF]|\uD869[\uDC00-\uDEDF]', '\uD86D[\uDC00-\uDF3F]|[\uD86A-\uD86C][\uDC00-\uDFFF]|\uD869[\uDF00-\uDFFF]', '\uD86D[\uDF40-\uDFFF]|\uD86E[\uDC00-\uDC1F]', '[\u31C0-\u31E3]'"
-	//Panc string = "'[@&=_\,\.\?\!\$\%\^\*\-\+\/]', '[\(\\[\'"<‘“]', '[\)\\]\'">”’]'"
+	AsiaLatin  = "([\u4E00-\u9FFF])([A-Za-z0-9\u00C0-\u00FF\u0100-\u017F\u0180-\u024F\u1E00-\u1EFF])"
+	LatingAsia = "([A-Za-z0-9\u00C0-\u00FF\u0100-\u017F\u0180-\u024F\u1E00-\u1EFF])([\u4E00-\u9FFF])"
 )
-
 
 type Document interface {
 	Format() error
-	ListFile() ([]string,error)
+	ListFile() ([]string, error)
 }
 
-func NewBasicDocument(path string,match,ignore []string) Document {
+func NewBasicDocument(opt Option) Document {
 	return &BasicDoc{
-		path,match,ignore,[]string{}, string(os.PathSeparator),
+		opt.Path, opt.Match, opt.Ignore, opt.Debug, []string{}, string(os.PathSeparator),
 	}
 }
 
 type BasicDoc struct {
-	Path string
-	Match []string
-	Ignore []string
-	files []string
+	Path          string
+	Match         []string
+	Ignore        []string
+	Debug         bool
+	files         []string
 	pathSeparator string
 }
 
-func (b *BasicDoc)Format() error {
-	files,err := b.ListFile()
+func (b *BasicDoc) Format() error {
+	files, err := b.ListFile()
 	if err != nil {
 		return err
 	}
-	for _,f := range files {
-		b.format(f)
+	if b.Debug == true {
+		for _, f := range files {
+			if err := b.preFormat(f); err != nil {
+				return err
+			}
+		}
+	} else {
+		for _, f := range files {
+			if err := b.format(f); err != nil {
+				return err
+			}
+		}
 	}
 	return nil
 }
 
-func (b *BasicDoc) ListFile() ([]string,error) {
+func (b *BasicDoc) ListFile() ([]string, error) {
 	f, err := os.Stat(b.Path)
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 	if !f.IsDir() {
-		return []string{b.Path},nil
+		if b.isAvaliable(f) {
+			return []string{b.Path}, nil
+		} else {
+			return []string{}, nil
+		}
 	}
 
-	files,err := b.getAllFiles(b.Path)
-	return files,err
+	files, err := b.getAllFiles(b.Path)
+	return files, err
 }
 
 func (b *BasicDoc) getAllFiles(dirPth string) (files []string, err error) {
@@ -85,35 +101,61 @@ func (b *BasicDoc) getAllFiles(dirPth string) (files []string, err error) {
 	return files, nil
 }
 
-func (b *BasicDoc)format(path string) error {
-	fmt.Println(path)
+func (b *BasicDoc) format(path string) error {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		return err
 	}
 	text := string(data)
-	reg := regexp.MustCompile("([\u4E00-\u9FFF])([A-Za-z0-9\u00C0-\u00FF\u0100-\u017F\u0180-\u024F\u1E00-\u1EFF])")
-	updateText := reg.ReplaceAllString(text, "$1 $2")
+	reg1 := regexp.MustCompile(AsiaLatin)
+	updateText := reg1.ReplaceAllString(text, "$1 $2")
+	reg2 := regexp.MustCompile(LatingAsia)
+	updateText = reg2.ReplaceAllString(updateText, "$1 $2")
 	if updateText != text {
 		f, err := os.Create(path)
 		if err != nil {
 			return err
 		} else {
 			defer f.Close()
-			f.Write([]byte(updateText))
+			_, err := f.Write([]byte(updateText))
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil
 }
 
-func (b *BasicDoc) edit(f os.File) error {
+func (b *BasicDoc) preFormat(path string) error {
+	data, err := ioutil.ReadFile(path)
+	if err != nil {
+		return err
+	}
+	txts := strings.Split(string(data), "\n")
+	for line, txt := range txts {
+		updateTxt := txt
+		reg1 := regexp.MustCompile(AsiaLatin)
+		arr := reg1.FindAllString(txt, -1)
+		for _, a := range arr {
+			updateTxt = strings.Replace(txt, a, color.RedString(a), -1)
+		}
+		reg2 := regexp.MustCompile(LatingAsia)
+		arr = reg2.FindAllString(txt, -1)
+		for _, a := range arr {
+			updateTxt = strings.Replace(txt, a, color.RedString(a), -1)
+		}
+		if updateTxt != txt {
+			fmt.Printf("%s %d %s\n", path, line, updateTxt)
+		}
+	}
+
 	return nil
 }
 
 func (b *BasicDoc) isAvaliable(file os.FileInfo) bool {
 	right := true
 	if len(b.Match) > 0 {
-		for _,s := range b.Match {
+		for _, s := range b.Match {
 			m, err := regexp.MatchString(s, file.Name())
 			if err != nil {
 				return false
@@ -125,16 +167,14 @@ func (b *BasicDoc) isAvaliable(file os.FileInfo) bool {
 	if len(b.Ignore) > 0 {
 		i := false
 		var err error
-		for _,s := range b.Ignore {
+		for _, s := range b.Ignore {
 			i, err = regexp.MatchString(s, file.Name())
 			if err != nil {
 				return false
 			}
 
 		}
-		right = !i  && right
+		right = !i && right
 	}
 	return right
 }
-
-
