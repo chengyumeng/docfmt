@@ -10,6 +10,7 @@ matrix:
         - 1.11.x
       script:
         - pwd
+        - go test ./pkg/utils/
 
 notifications:
   email:

@@ -8,10 +8,10 @@ import (
 
 var FormatCmd = &cobra.Command{
 	Use:   "docfmt",
-	Short: "Add one space between Chinese and English.",
-	Long: `A tool for automatically adding one space between Chinese and English.
-Power By https://github.com/chengyumeng
-Wechat Public Accounta: 程天写代码
+	Short: "中英文之间自动增加空格的工具",
+	Long: `一款性感的格式化中英文混合编写的纯文本文档的工具，自动在东亚语言和拉丁语言之间添加空格，使得文档更优雅。
+开发者 https://github.com/chengyumeng
+微信公众号: 程天写代码
 `,
 	Example: `docfmt $(pwd) --debug`,
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
@@ -26,8 +26,9 @@ var option = format.Option{
 }
 
 func init() {
-	FormatCmd.Flags().StringVarP(&option.Path, "path", "p", ".", "")
-	FormatCmd.Flags().BoolVarP(&option.Debug, "debug", "d", false, "")
+	FormatCmd.Flags().StringVarP(&option.Path, "path", "p", ".", "需要格式化文档的路径/文件")
+	FormatCmd.Flags().StringVarP(&option.Path, "match", "m", "", "按照给定规则过滤文件名（正则表达式，不符合规则的文件不格式化）")
+	FormatCmd.Flags().BoolVarP(&option.Debug, "debug", "d", false, "是否使用 debug 模式，debug 模式下，只输出将要修改的文字（类似 git diff）")
 }
 
 func doFormate(cmd *cobra.Command, args []string) error {
