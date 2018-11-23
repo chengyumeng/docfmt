@@ -27,7 +27,7 @@ var option = format.Option{
 
 func init() {
 	FormatCmd.Flags().StringVarP(&option.Path, "path", "p", ".", "需要格式化文档的路径/文件")
-	FormatCmd.Flags().StringVarP(&option.Path, "match", "m", "", "按照给定规则过滤文件名（正则表达式，不符合规则的文件不格式化）")
+	FormatCmd.Flags().StringVarP(&option.Match, "match", "m", "md$", "按照给定规则过滤文件名（正则表达式，不符合规则的文件不格式化）")
 	FormatCmd.Flags().BoolVarP(&option.Debug, "debug", "d", false, "是否使用 debug 模式，debug 模式下，只输出将要修改的文字（类似 git diff）")
 }
 

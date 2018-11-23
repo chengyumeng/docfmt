@@ -6,8 +6,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-
-func TestBasicdoc(t *testing.T){
+func TestBasicdoc(t *testing.T) {
 	Convey("Basic Document", t, func() {
 		//
 	})

@@ -28,7 +28,7 @@ func NewBasicDocument(opt Option) Document {
 
 type BasicDoc struct {
 	Path          string
-	Match         []string
+	Match         string
 	Ignore        []string
 	Debug         bool
 	files         []string
@@ -154,15 +154,15 @@ func (b *BasicDoc) preFormat(path string) error {
 
 func (b *BasicDoc) isAvaliable(file os.FileInfo) bool {
 	right := true
+	if file.IsDir() {
+		return right
+	}
 	if len(b.Match) > 0 {
-		for _, s := range b.Match {
-			m, err := regexp.MatchString(s, file.Name())
-			if err != nil {
-				return false
-			}
-
-			right = right && m
+		m, err := regexp.MatchString(b.Match, file.Name())
+		if err != nil {
+			return false
 		}
+		right = right && m
 	}
 	if len(b.Ignore) > 0 {
 		i := false
@@ -174,7 +174,6 @@ func (b *BasicDoc) isAvaliable(file os.FileInfo) bool {
 			}
 			right = !i && right
 		}
-
 	}
 	return right
 }
