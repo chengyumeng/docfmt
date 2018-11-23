@@ -1,0 +1,16 @@
+matrix:
+  include:
+    - language: go
+      os:
+        - linux
+        - osx
+      go:
+        - 1.9.x
+        - 1.10.x
+        - 1.11.x
+      script:
+        - pwd
+
+notifications:
+  email:
+    - 792400644@qq.com
