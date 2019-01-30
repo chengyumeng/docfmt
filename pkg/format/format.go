@@ -18,11 +18,15 @@ const (
 type Document interface {
 	Format() error
 	ListFile() ([]string, error)
+	GetErrorCount() int
 }
 
 func NewBasicDocument(opt Option) Document {
 	return &BasicDoc{
-		opt.Path, opt.Match, opt.Ignore, opt.Debug, []string{}, string(os.PathSeparator),
+		opt.Path, opt.Match,
+		opt.Ignore, opt.Debug,
+		opt.Lint, []string{},
+		string(os.PathSeparator), 0,
 	}
 }
 
@@ -31,8 +35,14 @@ type BasicDoc struct {
 	Match         string
 	Ignore        []string
 	Debug         bool
+	Lint          bool
 	files         []string
 	pathSeparator string
+	ErrorCount    int
+}
+
+func (b *BasicDoc) GetErrorCount() int {
+	return b.ErrorCount
 }
 
 func (b *BasicDoc) Format() error {
@@ -46,6 +56,7 @@ func (b *BasicDoc) Format() error {
 				return err
 			}
 		}
+		return nil
 	} else {
 		for _, f := range files {
 			if err := b.format(f); err != nil {
@@ -112,6 +123,7 @@ func (b *BasicDoc) format(path string) error {
 	reg2 := regexp.MustCompile(LatingAsia)
 	updateText = reg2.ReplaceAllString(updateText, "$1 $2")
 	if updateText != text {
+		b.ErrorCount = b.ErrorCount + 1
 		f, err := os.Create(path)
 		if err != nil {
 			return err
@@ -146,6 +158,7 @@ func (b *BasicDoc) preFormat(path string) error {
 		}
 		if updateTxt != txt {
 			fmt.Printf("%s %d %s\n", path, line, updateTxt)
+			b.ErrorCount = b.ErrorCount + 1
 		}
 	}
 
@@ -155,6 +168,17 @@ func (b *BasicDoc) preFormat(path string) error {
 func (b *BasicDoc) isAvaliable(file os.FileInfo) bool {
 	right := true
 	if file.IsDir() {
+		if len(b.Ignore) > 0 {
+			i := false
+			var err error
+			for _, s := range b.Ignore {
+				i, err = regexp.MatchString(s, file.Name())
+				if err != nil {
+					return false
+				}
+				right = !i && right
+			}
+		}
 		return right
 	}
 	if len(b.Match) > 0 {

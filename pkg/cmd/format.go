@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/chengyumeng/docfmt/pkg/format"
 	"github.com/chengyumeng/docfmt/pkg/utils"
 	"github.com/spf13/cobra"
@@ -29,9 +31,19 @@ func init() {
 	FormatCmd.Flags().StringVarP(&option.Path, "path", "p", ".", "需要格式化文档的路径/文件")
 	FormatCmd.Flags().StringVarP(&option.Match, "match", "m", "md$", "按照给定规则过滤文件名（正则表达式，不符合规则的文件不格式化）")
 	FormatCmd.Flags().BoolVarP(&option.Debug, "debug", "d", false, "是否使用 debug 模式，debug 模式下，只输出将要修改的文字（类似 git diff）")
+	FormatCmd.Flags().BoolVarP(&option.Lint, "lint", "l", false, "如有非法字符串，程序退出是否传递异常退出信号")
 }
 
 func doFormate(cmd *cobra.Command, args []string) error {
 	doc := format.NewBasicDocument(option)
-	return doc.Format()
+	err := doc.Format()
+	if err != nil {
+		fmt.Println(err)
+	}
+	if option.Lint {
+		if doc.GetErrorCount() > 0 {
+			panic(fmt.Sprintf("\n\n Error Format Count: %d\n", doc.GetErrorCount()))
+		}
+	}
+	return nil
 }
