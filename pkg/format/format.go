@@ -73,7 +73,7 @@ func (b *BasicDoc) ListFile() ([]string, error) {
 		return nil, err
 	}
 	if !f.IsDir() {
-		if b.isAvaliable(f) {
+		if b.isAvailable(f) {
 			return []string{b.Path}, nil
 		} else {
 			return []string{}, nil
@@ -92,7 +92,7 @@ func (b *BasicDoc) getAllFiles(dirPth string) (files []string, err error) {
 	}
 
 	for _, fi := range dir {
-		if !b.isAvaliable(fi) {
+		if !b.isAvailable(fi) {
 			continue
 		}
 		if fi.IsDir() { // 目录, 递归遍历
@@ -165,7 +165,7 @@ func (b *BasicDoc) preFormat(path string) error {
 	return nil
 }
 
-func (b *BasicDoc) isAvaliable(file os.FileInfo) bool {
+func (b *BasicDoc) isAvailable(file os.FileInfo) bool {
 	right := true
 	if file.IsDir() {
 		if len(b.Ignore) > 0 {

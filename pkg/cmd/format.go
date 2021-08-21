@@ -13,7 +13,7 @@ var FormatCmd = &cobra.Command{
 	Short: "中英文之间自动增加空格的工具",
 	Long: `一款性感的格式化中英文混合编写的纯文本文档的工具，自动在东亚语言和拉丁语言之间添加空格，使得文档更优雅。
 开发者 https://github.com/chengyumeng
-微信公众号: 程天写代码
+微信公众号: 我在鹅厂写代码
 `,
 	Example: `docfmt $(pwd) --debug`,
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
